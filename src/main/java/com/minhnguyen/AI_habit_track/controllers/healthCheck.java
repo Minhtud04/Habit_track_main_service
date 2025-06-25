@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @Description: This controller provides a health check endpoint that can be used to verify if the application is running and healthy.
  */
 @RestController
-public class health_check {
+public class healthCheck {
     @GetMapping("/health")
     public String healthCheck() {
         return "OK"; // Return a simple response indicating the application is healthy
