@@ -19,4 +19,7 @@ jobs:
           cache: maven
 
       - name: Run Maven Tests
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: mvn clean test
