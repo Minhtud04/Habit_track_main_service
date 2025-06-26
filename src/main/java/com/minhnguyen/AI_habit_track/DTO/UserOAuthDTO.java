@@ -1,13 +1,11 @@
 package com.minhnguyen.AI_habit_track.DTO;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @AllArgsConstructor     //constructor all args
 @Getter
-public class UserOAuth {
+public class UserOAuthDTO {
     private String username;
     private String email;
 }

@@ -18,10 +18,10 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     // --- Username Constraints ---
-    @NotBlank(message = "Username cannot be empty") // Application-level: must not be null or just whitespace
+    @NotBlank(message = "Username empty") // Application-level: must not be null or just whitespace
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters") // Application-level: character limit
     @Column(nullable = false, unique = true, length = 50) // Database-level: NOT NULL, UNIQUE, and VARCHAR(50)
     private String username;

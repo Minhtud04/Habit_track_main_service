@@ -1,4 +1,4 @@
-package com.minhnguyen.AI_habit_track.controllers;
+package com.minhnguyen.AI_habit_track.controllers.healthCheck;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

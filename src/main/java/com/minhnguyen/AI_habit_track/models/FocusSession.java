@@ -27,19 +27,24 @@ public class FocusSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Session name != null")
+    private String sessionName;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @ToString.Exclude // Exclude from toString to prevent potential infinite loops
+    @ToString.Exclude
     private User user;
 
     @NotNull(message = "Start date and time cannot be null")
     @Column(nullable = false)
     private LocalDateTime startDateTime;
 
+    @NotNull(message = "End date and time cannot be null")
+    @Column(nullable = false)
     private LocalDateTime endDateTime;
 
-    @Min(value = 1, message = "Quality score must be at least 1")
-    @Max(value = 10, message = "Quality score must be at most 10")
+    @Min(value = 1, message = "Quality score min = 1")
+    @Max(value = 10, message = "Quality score max = 10")
     @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 5")
     private Integer qualityScore;
 

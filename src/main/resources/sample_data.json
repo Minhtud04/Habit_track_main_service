@@ -1,0 +1,30 @@
+{
+  "session_name": "Evening Task",
+
+  "start_time": 25032468460,
+  "end_time": 1235436347,
+  "activities": [
+    {
+      "name": "www.google.com",
+      "usage_time": 12415325
+      },
+    {
+      "name": "www.youtube.com",
+      "usage_time": 24234235
+    },
+    {
+      "name": "www.facebook.com",
+      "usage_time": 235375434
+    },
+    {
+      "name": "www.leetcode.com",
+      "usage_time": 2536346
+    }
+  ],
+
+  "quality_grade": 7,
+  "focus_grade": 6,
+
+  "achievement_note": "done sample data, done frontend, done ",
+  "distraction_note": "Youtube distraction, resting between session, background music"
+}

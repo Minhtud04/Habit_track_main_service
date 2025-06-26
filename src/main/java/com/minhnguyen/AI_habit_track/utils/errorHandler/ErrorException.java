@@ -1,4 +1,4 @@
-package com.minhnguyen.AI_habit_track.utils;
+package com.minhnguyen.AI_habit_track.utils.errorHandler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -22,6 +22,16 @@ public class ErrorException {
     @ResponseStatus(HttpStatus.CONFLICT)
     public static class ResourceAlreadyExists extends RuntimeException {
         public ResourceAlreadyExists(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Unauthenticated or problem with Oauth2
+     */
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public static class Unauthenticated extends RuntimeException {
+        public Unauthenticated(String message) {
             super(message);
         }
     }

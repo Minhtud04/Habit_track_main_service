@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,6 +24,7 @@ public class SecurityConfig {
     final String OAUTH2_LOGIN_SUCCESS_URL = "http://localhost:3000/home";
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
+        // Disable CSRF protection for all endpoints
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
@@ -42,6 +44,10 @@ public class SecurityConfig {
                         .requestMatchers("/", "/error", "/oauth2/**").permitAll()
                         // Secure everything else
                         .anyRequest().authenticated()
+                )
+
+                //disable csrf
+                .csrf(AbstractHttpConfigurer::disable
                 )
 
                 // Configure OAuth2 Login with just the essential success handler

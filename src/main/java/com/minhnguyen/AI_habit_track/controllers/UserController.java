@@ -1,7 +1,7 @@
 package com.minhnguyen.AI_habit_track.controllers;
 import jakarta.validation.Valid;
 import com.minhnguyen.AI_habit_track.models.User;
-import com.minhnguyen.AI_habit_track.services.UserService;
+import com.minhnguyen.AI_habit_track.services.sub_services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -27,19 +27,5 @@ public class UserController {
             return principal.getAttributes();
         }
         return Map.of("error", "User not authenticated");
-    }
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
-        User user = userService.findByUserId(userId);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(user);
-    }
-
-    @PostMapping("/createUser")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        User createdUser = userService.addNewUser(user);
-        return ResponseEntity.ok(createdUser);
     }
 }
