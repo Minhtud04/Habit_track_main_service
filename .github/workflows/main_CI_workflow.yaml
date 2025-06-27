@@ -23,3 +23,41 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: mvn clean test
+
+      - name: Build JAR
+        run: mvn clean package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: lambda-jar
+            path: target/AI_habit_track-0.0.1-SNAPSHOT.jar
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-jar
+
+      # Configure AWS credentials using the OIDC role you created
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # Assumes you have this secret set up
+          aws-region: us-east-1 # CHANGE THIS to your AWS region
+
+      # Deploy the JAR to your Lambda function
+      - name: Deploy to AWS Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name AITrack_Main_Service\
+            --zip-file fileb://AI_habit_track-0.0.1-SNAPSHOT.jar
