@@ -26,7 +26,12 @@ jobs:
         run: mvn clean test
 
       - name: Build JAR
-        run: mvn clean package
+        run: |
+          echo "Current working directory:"
+          pwd 
+          echo "Listing contents of current directory:"
+          ls -la
+          mvn clean package
 
   deploy:
     runs-on: ubuntu-latest
@@ -69,6 +74,8 @@ jobs:
         run: |
           echo "Current working directory:"
           pwd 
+          echo "Listing contents of current directory:"
+          ls -la
           docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
           docker tag ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
