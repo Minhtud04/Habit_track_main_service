@@ -57,6 +57,9 @@ jobs:
       ECS_SERVICE_NAME: ai-track-app-service-1
 
     steps:
+      - name: Checkout repository for deploy job
+        uses: actions/checkout@v4
+
       # Configure AWS credentials using the OIDC role
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
