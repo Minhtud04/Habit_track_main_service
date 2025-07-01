@@ -48,7 +48,7 @@ jobs:
       AWS_REGION: us-east-1
       ECR_REPOSITORY: summer2025/ai_track_repo
 
-      IMAGE_TAG: ${{ github.sha }}
+      IMAGE_TAG: main-service-${{ github.sha }}
 
       #ECS env config: appName-env-comName
       ECS_TASK_DEFINITION_FILE: ./.aws/ecs/task-definition.json
