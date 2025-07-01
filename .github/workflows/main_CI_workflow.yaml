@@ -67,6 +67,8 @@ jobs:
       - name: Local build and tag Docker image
         id: build-image
         run: |
+          echo "Current working directory:"
+          pwd 
           docker build -t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
           docker tag ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
