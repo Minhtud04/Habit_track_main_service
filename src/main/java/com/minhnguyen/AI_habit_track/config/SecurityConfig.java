@@ -41,7 +41,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // Allow public access to the essentials
-                        .requestMatchers("/", "/error", "/oauth2/**").permitAll()
+                        .requestMatchers("/health", "/oauth2/**").permitAll()
                         // Secure everything else
                         .anyRequest().authenticated()
                 )
