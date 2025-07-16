@@ -88,7 +88,10 @@ jobs:
             # Find and kill the old running Java process
             pkill -f 'java -jar' || true 
             # Navigate to the app directory
-            cd ${{ env.EC2_TARGET_FOLDER }}/target
+            cd ${{ env.EC2_TARGET_FOLDER }}
+            ls 
+            cd target
+            ls
             # Start the new application in the background
             nohup java -jar  AI_habit_track-0.0.5-SNAPSHOT.jar > app.log 2>&1 &
             
