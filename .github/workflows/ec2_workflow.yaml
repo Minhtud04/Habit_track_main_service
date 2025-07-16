@@ -90,4 +90,6 @@ jobs:
             # Navigate to the app directory
             cd ${{ env.EC2_TARGET_FOLDER }}/target
             # Start the new application in the background
-            nohup java -jar  AI_habit_track-0.0.4-SNAPSHOT.jar > app.log 2>&1 &
+            nohup java -jar  AI_habit_track-0.0.5-SNAPSHOT.jar > app.log 2>&1 &
+            
+            exit 0
