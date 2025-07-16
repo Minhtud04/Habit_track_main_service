@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.minhnguyen</groupId>
 	<artifactId>AI_habit_track</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<name>AI_habit_track</name>
 	<description>Tracking your habit, and let&apos;s see what AI can do?</description>
 	<url/>
