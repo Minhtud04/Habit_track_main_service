@@ -80,7 +80,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: http://localhost:8080/api/login/oauth2/code/google
+            redirect-uri: ${GOOGLE_REDIRECT_URI_DEV}
 
 my-app:
   message: Hello from Test!
