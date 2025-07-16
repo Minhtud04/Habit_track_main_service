@@ -74,7 +74,7 @@ jobs:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_USERNAME }}
           key: ${{ env.EC2_SSH_PRIVATE_KEY }}
-          source: "target/*.jar"
+          source: target/*.jar
           target: ${{ env.EC2_TARGET_FOLDER }}
 
       # Step 5: Restart using ssh - kill process and start new
@@ -84,8 +84,6 @@ jobs:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_USERNAME }}
           key: ${{ env.EC2_SSH_PRIVATE_KEY }}
-          source: "target/*.jar"
-          target: ${{ env.EC2_TARGET_FOLDER }}
           script: |
             # Find and kill the old running Java process
             pkill -f 'java -jar' || true 
