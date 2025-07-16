@@ -75,7 +75,7 @@ jobs:
           username: ${{ env.EC2_USERNAME }}
           key: ${{ env.EC2_SSH_PRIVATE_KEY }}
           source: target/*.jar
-          target: ${{ env.EC2_TARGET_FOLDER }}
+          target: /home/ubuntu/focus_tracker_main_service/
 
       # Step 5: Restart using ssh - kill process and start new
       - name: Restart application on EC2
@@ -88,11 +88,5 @@ jobs:
             # Find and kill the old running Java process
             pkill -f 'java -jar' || true 
             # Navigate to the app directory
-            cd ${{ env.EC2_TARGET_FOLDER }}
-            ls 
-            cd target
-            ls
-            # Start the new application in the background
-            nohup java -jar  AI_habit_track-0.0.5-SNAPSHOT.jar > app.log 2>&1 &
-            
-            exit 0
+            cd /home/ubuntu/focus_tracker_main_service/
+            nohup java -jar  AI_habit_track-0.0.5-SNAPSHOT.jar --spring.profiles.active=prod > app-AI_habit_track-0.0.5-SNAPSHOT.log 2>&1 &
