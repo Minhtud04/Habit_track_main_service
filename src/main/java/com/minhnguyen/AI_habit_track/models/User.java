@@ -23,7 +23,7 @@ public class User {
     // --- Username Constraints ---
     @NotBlank(message = "Username empty") // Application-level: must not be null or just whitespace
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters") // Application-level: character limit
-    @Column(nullable = false, unique = true, length = 50) // Database-level: NOT NULL, UNIQUE, and VARCHAR(50)
+    @Column(nullable = false, length = 50) // Database-level: NOT NULL, UNIQUE, and VARCHAR(50)
     private String username;
 
     // --- Email Constraints ---

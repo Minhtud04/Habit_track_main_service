@@ -1,0 +1,33 @@
+name: Spring Boot CI
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build-and-test:
+    # Run on current push version - test profile
+    # H2-DB + Localhost?
+    runs-on: ubuntu-latest
+    steps:
+      # step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Env config Java
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # Step 3: Test
+      - name: test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI_DEV: ${{ secrets.GOOGLE_REDIRECT_URI_DEV }}
+
+        run: mvn test

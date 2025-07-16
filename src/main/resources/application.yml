@@ -1,52 +1,42 @@
-
 server:
-  address: 127.0.0.1
-
-  error:
-    whitelabel:
-      enabled: false
-
   port: 8080
   servlet:
     context-path: /api
 
-  tomcat:
-    accesslog:
-      enabled: true
-
 spring:
-  logging:
-    level:
-      org:
-        springframework: DEBUG
-  # --- DATASOURCE CONFIGURATION ---
-  datasource:
-    # It's good practice to add DB_CLOSE_DELAY to keep the in-memory H2 DB alive
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    username: sa
-    password: password # Your original file had 'password', I've corrected it here.
-    driverClassName: org.h2.Driver
-
-  # --- H2 CONSOLE CONFIGURATION ---
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
-  # --- SPRING SESSION CONFIGURATION ---
-  # This stores user session data in the H2 database.
+  application:
+    name: my-app
+  jpa:
+    hibernate:
+      ddl-auto: update # Use 'validate' for production to prevent accidental schema changes
+    show-sql: true
   session:
     store-type: jdbc
     jdbc:
-      initialize-schema: always
+      initialize-schema: always # Creates the spring_session table if it doesn't exist
+  flyway:
+    enabled: false
+  profiles:
+    active: "prod"
 
-  # --- JPA & HIBERNATE CONFIGURATION ---
+---
+# ===================================================================
+# PRODUCTION PROFILE (prod)
+# - Activated when --spring.profiles.active=prod
+# - Uses PostgreSQL RDS
+# - Production Domain
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_HOST_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
-
-  # --- OAUTH2 CLIENT CONFIGURATION (CORRECTED) ---
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   security:
     oauth2:
       client:
@@ -54,11 +44,43 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: ${GOOGLE_REDIRECT_URI_PROD}
 
-            scope:
-              - openid
-              - profile
-              - email
+my-app:
+  message: Hello from Production!
 
-            client-authentication-method: client_secret_basic
-            authorization-grant-type: authorization_code
+---
+# ===================================================================
+# TEST PROFILE (test)
+# - Activated automatically for @SpringBootTest or with --spring.profiles.active=test
+# - Uses H2 in-memory database
+# - Localhost Domain
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop # Re-creates the schema on every test run
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: http://localhost:8080/api/login/oauth2/code/google
+
+my-app:
+  message: Hello from Test!
