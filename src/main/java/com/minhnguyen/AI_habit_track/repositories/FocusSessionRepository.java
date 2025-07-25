@@ -14,13 +14,6 @@ import java.util.Optional;
 @Repository
 public interface FocusSessionRepository extends JpaRepository<FocusSession, Long> {
     /**
-     * Finds all focus sessions for a specific user that started within a given time range.
-     * The method name is parsed by Spring Data JPA to create the query automatically:
-     * findBy -> The query prefix
-     * User_Id -> Looks for a field named 'user' and finds its 'id' property.
-     * And -> Combines criteria
-     * StartDateTimeBetween -> Looks for the 'startDateTime' field and applies a 'BETWEEN' clause.
-     *
      * @param userId The ID of the User to search for.
      * @param start The start of the date/time range (inclusive).
      * @param end The end of the date/time range (inclusive).

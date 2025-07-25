@@ -1,4 +1,4 @@
-package com.minhnguyen.AI_habit_track.DTO;
+package com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

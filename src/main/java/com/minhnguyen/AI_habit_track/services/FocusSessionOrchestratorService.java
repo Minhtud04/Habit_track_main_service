@@ -1,11 +1,15 @@
 package com.minhnguyen.AI_habit_track.services;
 
 import com.minhnguyen.AI_habit_track.DTO.*;
+import com.minhnguyen.AI_habit_track.DTO.AIFlowDTO.AIServiceQueueDTO;
+import com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO.FocusSessionRequestDTO;
+import com.minhnguyen.AI_habit_track.controllers.FocusSessionController;
 import com.minhnguyen.AI_habit_track.models.*;
 import com.minhnguyen.AI_habit_track.services.sub_services.*;
-import com.minhnguyen.AI_habit_track.utils.Log.Logger;
 import com.minhnguyen.AI_habit_track.utils.errorHandler.ErrorException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,44 +19,43 @@ import java.util.stream.Collectors;
 
 @Service
 public class FocusSessionOrchestratorService {
-    private final Logger logger = new Logger("Orchestrator Service");
+    private static final Logger logger = LoggerFactory.getLogger(FocusSessionController.class);
     private final FocusSessionService sessionService;
     private final ActivityService activityService;
-    private final AI_FeedbackService aiService;
+    private final QueueService queueService;
     private final AuthService authService;
     private final UserService userService;
 
-    public FocusSessionOrchestratorService(UserService userService, AuthService authService, FocusSessionService sessionService, ActivityService activityService, AI_FeedbackService aiService) {
+    public FocusSessionOrchestratorService(UserService userService, AuthService authService, FocusSessionService sessionService, ActivityService activityService, QueueService queueService) {
         this.sessionService = sessionService;
         this.activityService = activityService;
-        this.aiService = aiService;
+        this.queueService = queueService;
         this.authService = authService;
         this.userService = userService;
     }
 
     @Transactional
-    public void processAndSaveWorkSession(FocusSessionRequestDTO dto) {
-        logger.log("Processing dto");
-
+    public FocusSession processAndSaveWorkSession(FocusSessionRequestDTO focusSessionRequestDTO) {
+    // 1. credential info
         User user = getAuthenticatedUser();
 
-        FocusSession newSession = mapDtoToFocusSession(dto, user);
-        FocusSession savedSession = sessionService.saveSession(newSession);
+    // 2. map DTO to entity + save focus session
+        FocusSession savedSession = sessionService.saveSession(focusSessionRequestDTO, user);
 
-        if (dto.getActivities() != null && !dto.getActivities().isEmpty()) {
-            List<Activity> activities = mapDtoToActivities(dto, savedSession);
-            activityService.saveAllActivities(activities);
+    // 3. save Activities
+        if (focusSessionRequestDTO.getActivities() != null && !focusSessionRequestDTO.getActivities().isEmpty()) {
+            activityService.saveAllActivities(focusSessionRequestDTO, savedSession);
         }
 
-        // 4. Send the data to the message queue for AI processing
-        aiService.queueSessionForFeedback(savedSession.getId(), createAiFeedbackDto(dto));
+    // 4. send to queue
+        queueService.queueSessionForFeedback(createAiFeedbackDto(focusSessionRequestDTO, savedSession));
+        logger.info("Successfully saved and sent to Queue. Focus Session ID: {} - User email: {}", savedSession.getId(), savedSession.getUser().getEmail()); // Log the session ID for tracking
+
+        return savedSession;
     }
 
 
     private User getAuthenticatedUser() {
-        //log
-        logger.log("Retrieving authenticated user details.");
-
         UserOAuthDTO userOAuthDTO = authService.getUserDetails();
         if (userOAuthDTO == null) {
             throw new ErrorException.Unauthenticated("User is not authenticated or OAuth2 details are missing.");
@@ -60,47 +63,10 @@ public class FocusSessionOrchestratorService {
         return userService.findOrCreateUser(userOAuthDTO);
     }
 
-    private FocusSession mapDtoToFocusSession(FocusSessionRequestDTO dto, User user) {
-        logger.log("Mapping DTO to FocusSession entity.");
 
-        FocusSession session = new FocusSession();
-
-        session.setSessionName(dto.getSessionName() != null ? dto.getSessionName() : "Focus Session");
-
-        session.setStartDateTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(dto.getStartTime()), ZoneId.systemDefault()));
-        session.setEndDateTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(dto.getEndTime()), ZoneId.systemDefault()));
-
-        session.setQualityScore(dto.getQualityGrade());
-        session.setFocusScore(dto.getFocusGrade());
-
-        session.setAchievementNote(dto.getAchievementNote());
-        session.setDistractionNote(dto.getDistractionNote());
-
-        session.setUser(user);
-        return session;
-    }
-
-    // mapDtoToActivities method remains the same
-    private List<Activity> mapDtoToActivities(FocusSessionRequestDTO dto, FocusSession parentSession) {
-        return dto.getActivities().stream()
-                .map(activityDto -> {
-                    Activity activity = new Activity();
-                    activity.setActivityName(activityDto.getName());
-                    activity.setDuration(Duration.ofMillis(activityDto.getUsageTime()));
-                    activity.setFocusSession(parentSession);
-                    return activity;
-                })
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Creates the data transfer object specifically for the AI service.
-     * This decouples the AI service from the main request DTO.
-     * @param requestDto The original request DTO from the client.
-     * @return A new AI_FeedbackDTO instance.
-     */
-    private AI_FeedbackDTO createAiFeedbackDto(FocusSessionRequestDTO requestDto) {
-        return new AI_FeedbackDTO(
+    private AIServiceQueueDTO createAiFeedbackDto(FocusSessionRequestDTO requestDto, FocusSession savedSession) {
+        return new AIServiceQueueDTO(
+                savedSession.getId(),
                 requestDto.getStartTime(),
                 requestDto.getEndTime(),
                 requestDto.getActivities(),

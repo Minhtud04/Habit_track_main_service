@@ -1,7 +1,7 @@
-package com.minhnguyen.AI_habit_track.DTO;
+package com.minhnguyen.AI_habit_track.DTO.AIFlowDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.minhnguyen.AI_habit_track.DTO.ActivityRequestDTO;
+import com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO.ActivityRequestDTO;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,11 +17,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AI_FeedbackDTO {
+public class AIServiceQueueDTO {
+    @NotNull(message = "sessionId is required")
+    @JsonProperty("session_id")
+    private Long sessionId;             // User's sessionId for further storage !
 
     @NotNull(message = "Start time is required")
     @JsonProperty("start_time")
-    private Long startTime; // Unix timestamp in milliseconds
+    private Long startTime;             // Unix timestamp in milliseconds
 
     @NotNull(message = "End time is required")
     @JsonProperty("end_time")

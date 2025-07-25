@@ -2,7 +2,7 @@ package com.minhnguyen.AI_habit_track.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -22,35 +22,44 @@ import static org.springframework.boot.autoconfigure.security.servlet.PathReques
 @EnableWebSecurity
 public class SecurityConfig {
     final String OAUTH2_LOGIN_SUCCESS_URL = "http://localhost:3000/home";
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
-        // Disable CSRF protection for all endpoints
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    final String INTERNAL_API_BASE_URL = "/internal/**";
 
-                // --- ADD THIS SECTION FOR H2 CONSOLE ---
-                .csrf(csrf -> csrf
-                        // Disable CSRF protection only for the H2 console path
-                        .ignoringRequestMatchers(toH2Console())
-                )
+
+    /**
+     * Security Filter Chain for internal API endpoints (Within VPC)
+     * This has a higher precedence (@Order(1)) and allows all requests without authentication.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain internalApiFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(INTERNAL_API_BASE_URL)
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
+     * Main Security Filter Chain for user-facing endpoints.
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain mainFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers
-                        // The H2 console runs in a frame, so we need to allow it
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
-                // --- END OF H2 CONSOLE SECTION ---
 
                 .authorizeHttpRequests(auth -> auth
                         // Allow public access to the essentials
                         .requestMatchers("/health", "/oauth2/**").permitAll()
+//                        .requestMatchers(toH2Console()).permitAll() // Also explicitly permit H2 console
                         // Secure everything else
                         .anyRequest().authenticated()
                 )
 
-                //disable csrf
-                .csrf(AbstractHttpConfigurer::disable
-                )
-
-                // Configure OAuth2 Login with just the essential success handler
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(successHandler)
                 );
@@ -58,7 +67,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // CORS configuration remains essential for your SPA architecture
+    // Your existing CORS and Success Handler beans remain unchanged.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -74,21 +83,15 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationSuccessHandler successHandler() {
-        // A @Bean method must return an object. Here, we return the handler itself.
         return (request, response, authentication) -> {
-
-            // The logic to get the user goes INSIDE the lambda.
-            // The 'authentication' object is passed into the handler when it's called.
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2User oauthUser = oauthToken.getPrincipal();
 
-            // You can now use the user's details for logging or other tasks.
             String name = oauthUser.getAttribute("name");
             String email = oauthUser.getAttribute("email");
 
             System.out.println("Login successful for user: " + name + " with email: " + email);
 
-            // Finally, the main job of the handler: redirect the user's browser.
             response.sendRedirect(OAUTH2_LOGIN_SUCCESS_URL);
         };
     }

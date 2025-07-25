@@ -1,31 +1,32 @@
 package com.minhnguyen.AI_habit_track.controllers;
 
-import com.minhnguyen.AI_habit_track.DTO.FocusSessionRequestDTO;
+import com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO.FocusSessionRequestDTO;
+import com.minhnguyen.AI_habit_track.models.FocusSession;
 import com.minhnguyen.AI_habit_track.services.FocusSessionOrchestratorService;
-import com.minhnguyen.AI_habit_track.utils.Log.Logger;
+
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 public class FocusSessionController {
-    private Logger logger = new Logger("Session Controller");
-
+    // Use the standard SLF4J Logger and LoggerFactory
+    private static final Logger logger = LoggerFactory.getLogger(FocusSessionController.class);
     private final FocusSessionOrchestratorService orchestratorService;
-
     public FocusSessionController(FocusSessionOrchestratorService orchestratorService) {
         this.orchestratorService = orchestratorService;
     }
 
     @PostMapping("/v1/sessions")
     public ResponseEntity<String> createFocusSession(@Valid @RequestBody FocusSessionRequestDTO requestDTO) {
-        logger.log("Received request to create a focus session.");
+        // Use a standard logging method like .info(), .debug(), .error(), etc.
+        logger.info("Controller: Received request to create a focus session.");
 
+        FocusSession savedSession = orchestratorService.processAndSaveWorkSession(requestDTO);
 
-        orchestratorService.processAndSaveWorkSession(requestDTO);
         return ResponseEntity.ok("Session received and is being processed.");
     }
 }
