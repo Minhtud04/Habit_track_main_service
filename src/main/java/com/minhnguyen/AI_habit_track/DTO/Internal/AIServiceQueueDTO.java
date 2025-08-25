@@ -1,7 +1,7 @@
-package com.minhnguyen.AI_habit_track.DTO.AIFlowDTO;
+package com.minhnguyen.AI_habit_track.DTO.Internal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO.ActivityRequestDTO;
+import com.minhnguyen.AI_habit_track.DTO.Request.ActivityRequestDTO;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

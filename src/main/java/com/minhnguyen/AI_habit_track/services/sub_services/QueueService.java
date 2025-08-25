@@ -1,6 +1,6 @@
 package com.minhnguyen.AI_habit_track.services.sub_services;
 
-import com.minhnguyen.AI_habit_track.DTO.AIFlowDTO.AIServiceQueueDTO;
+import com.minhnguyen.AI_habit_track.DTO.Internal.AIServiceQueueDTO;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class QueueService {
     private static final Logger LOG = LoggerFactory.getLogger(AI_FeedbackService.class);
-    private final SqsTemplate sqsTemplate;
 
     @Value("${app.sqs.queue-url}") // Injects the queue URL from application.yml
     private String queueUrl;
 
+    private final SqsTemplate sqsTemplate;
     public QueueService(SqsTemplate sqsTemplate) {
         this.sqsTemplate = sqsTemplate;
     }

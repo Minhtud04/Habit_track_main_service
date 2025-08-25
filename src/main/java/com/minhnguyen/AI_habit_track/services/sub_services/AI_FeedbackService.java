@@ -1,7 +1,6 @@
 package com.minhnguyen.AI_habit_track.services.sub_services;
 
-import com.minhnguyen.AI_habit_track.DTO.AIFlowDTO.AIServiceQueueDTO;
-import com.minhnguyen.AI_habit_track.DTO.AIFlowDTO.AI_FeedbackDTO;
+import com.minhnguyen.AI_habit_track.DTO.Internal.AI_FeedbackDTO;
 import com.minhnguyen.AI_habit_track.models.AISessionFeedback;
 import com.minhnguyen.AI_habit_track.models.FocusSession;
 import com.minhnguyen.AI_habit_track.repositories.AISessionFeedbackRepository;
@@ -17,7 +16,6 @@ public class AI_FeedbackService {
     private static final Logger LOG = LoggerFactory.getLogger(AI_FeedbackService.class);
     private final AISessionFeedbackRepository aiSessionFeedbackRepository;
     private final FocusSessionRepository focusSessionRepository;
-
 
     public AI_FeedbackService(AISessionFeedbackRepository aiSessionFeedbackRepository, FocusSessionRepository focusSessionRepository) {
         this.aiSessionFeedbackRepository = aiSessionFeedbackRepository;
@@ -39,6 +37,7 @@ public class AI_FeedbackService {
         FocusSession focusSession = focusSessionRepository.findById(focusSessionId)
                 .orElseThrow(() -> new RuntimeException("FocusSession not found with id: " + focusSessionId));
 
+
         // 2. Create and populate the new AISessionFeedback entity.
         AISessionFeedback feedback = new AISessionFeedback();
         feedback.setFocusSession(focusSession); // Link it to the parent session.
@@ -46,6 +45,8 @@ public class AI_FeedbackService {
         feedback.setAiQualityScore(payload.getAiQualityScore());
         feedback.setAiNote(payload.getAiNotes());
 
+
+        LOG.info("Check existing session succeeded. Saving processing...");
         // 3. Save the new entity to the database.
         aiSessionFeedbackRepository.save(feedback);
 
@@ -55,5 +56,18 @@ public class AI_FeedbackService {
         LOG.info("Successfully saved AI feedback ID: {}  - FocusSession ID: {}", updatedSession.getAiSessionFeedback().getId(), updatedSession.getId());
 
         return updatedSession;
+    }
+
+
+    public AISessionFeedback getAiFeedbackByFocusSession(FocusSession focusSession) {
+        LOG.info("Retrieving AI feedback for FocusSession ID: {}", focusSession.getId());
+
+        AISessionFeedback aiSessionFeedback = aiSessionFeedbackRepository.findByFocusSession(focusSession);
+        if (aiSessionFeedback == null) {
+            LOG.warn("No AI feedback found for FocusSession ID: {}", focusSession.getId());
+            return null; // or throw an exception if you prefer
+        }
+        LOG.info("Successfully retrieved AI feedback ID: {} for FocusSession ID: {}", aiSessionFeedback.getId(), focusSession.getId());
+        return aiSessionFeedback;
     }
 }

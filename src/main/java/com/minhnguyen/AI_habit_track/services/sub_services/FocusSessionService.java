@@ -1,6 +1,6 @@
 package com.minhnguyen.AI_habit_track.services.sub_services;
 
-import com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO.FocusSessionRequestDTO;
+import com.minhnguyen.AI_habit_track.DTO.Request.FocusSessionRequestDTO;
 import com.minhnguyen.AI_habit_track.models.FocusSession;
 import com.minhnguyen.AI_habit_track.models.User;
 import com.minhnguyen.AI_habit_track.repositories.FocusSessionRepository;
@@ -21,6 +21,11 @@ public class FocusSessionService {
     public FocusSession saveSession(FocusSessionRequestDTO focusSessionRequestDTO, User user) {
         FocusSession session = mapDtoToFocusSession(focusSessionRequestDTO, user);
         return focusSessionRepository.save(session);
+    }
+
+    public FocusSession getFocusSessionById(Long sessionId) {
+        return focusSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Focus session not found with ID: " + sessionId));
     }
 
 

@@ -1,47 +1,49 @@
 package com.minhnguyen.AI_habit_track.config;
 
+import com.minhnguyen.AI_habit_track.controllers.FocusSessionController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
+
+
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    final String OAUTH2_LOGIN_SUCCESS_URL = "http://localhost:3000/home";
-    final String INTERNAL_API_BASE_URL = "/internal/**";
 
+    @Value("${app.cors.extension-url}")
+    private String EXTENSION_URL;
+    final String INTERNAL_API_BASE_URL = "/service-internal/**";
 
-    /**
-     * Security Filter Chain for internal API endpoints (Within VPC)
-     * This has a higher precedence (@Order(1)) and allows all requests without authentication.
-     */
+    Logger log = LoggerFactory.getLogger(FocusSessionController.class);
+
     @Bean
     @Order(1)
     public SecurityFilterChain internalApiFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher(INTERNAL_API_BASE_URL)
-                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 
-    /**
-     * Main Security Filter Chain for user-facing endpoints.
-     */
     @Bean
     @Order(2)
     public SecurityFilterChain mainFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
@@ -53,10 +55,8 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // Allow public access to the essentials
                         .requestMatchers("/health", "/oauth2/**").permitAll()
-//                        .requestMatchers(toH2Console()).permitAll() // Also explicitly permit H2 console
-                        // Secure everything else
+                        .requestMatchers("/ws").permitAll()
                         .anyRequest().authenticated()
                 )
 
@@ -67,11 +67,10 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Your existing CORS and Success Handler beans remain unchanged.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of(EXTENSION_URL));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -82,17 +81,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationSuccessHandler successHandler() {
-        return (request, response, authentication) -> {
-            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-            OAuth2User oauthUser = oauthToken.getPrincipal();
+    public AuthenticationSuccessHandler successHandler(
+            @Value("${app.oauth2.login-success-url}") String successUrl) {
 
-            String name = oauthUser.getAttribute("name");
-            String email = oauthUser.getAttribute("email");
-
-            System.out.println("Login successful for user: " + name + " with email: " + email);
-
-            response.sendRedirect(OAUTH2_LOGIN_SUCCESS_URL);
+        return (request, response, auth) -> {
+            var oauth = (OAuth2AuthenticationToken) auth;
+            var user = oauth.getPrincipal();
+            log.info("User logged in successfully : {}", user.getName());
+            response.sendRedirect(successUrl);
         };
     }
 }
+

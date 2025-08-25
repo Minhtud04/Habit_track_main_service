@@ -1,6 +1,6 @@
 package com.minhnguyen.AI_habit_track.services.sub_services;
 
-import com.minhnguyen.AI_habit_track.DTO.ActivitiesFlowDTO.FocusSessionRequestDTO;
+import com.minhnguyen.AI_habit_track.DTO.Request.FocusSessionRequestDTO;
 import com.minhnguyen.AI_habit_track.models.Activity;
 import com.minhnguyen.AI_habit_track.models.FocusSession;
 import com.minhnguyen.AI_habit_track.repositories.ActivityRepository;
@@ -13,11 +13,9 @@ import java.util.stream.Collectors;
 @Service
 public class ActivityService {
     private final ActivityRepository activityRepository;
-
     public ActivityService(ActivityRepository activityRepository) {
         this.activityRepository = activityRepository;
     }
-
     public void saveAllActivities(FocusSessionRequestDTO focusSessionRequestDTO, FocusSession savedSession) {
         List<Activity> activities = mapDtoToActivities(focusSessionRequestDTO, savedSession);
         activityRepository.saveAll(activities);
