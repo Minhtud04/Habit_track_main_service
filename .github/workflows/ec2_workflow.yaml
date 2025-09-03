@@ -43,13 +43,19 @@ jobs:
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REDIRECT_URI_PROD: ${{ secrets.GOOGLE_REDIRECT_URI_PROD }}
 
+      SQS_QUEUE_URL: ${{secrets.SQS_QUEUE_URL}}
+      EXTENSION_URL: ${{secrets.EXTENSION_URL}}
+      LOGIN_SUCCESS_URL: ${{secrets.LOGIN_SUCCESS_URL}}
+
       EC2_HOST: ${{ secrets.EC2_HOST }}
       EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-
       EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
       EC2_TARGET_FOLDER: ${{ secrets.EC2_TARGET_FOLDER }}
 
@@ -87,4 +93,21 @@ jobs:
           script: |
             fuser -k 8080/tcp || true
             cd /home/ubuntu/focus_tracker_main_service/target
+            
+            export DB_HOST_URL=$DB_HOST_URL
+            export DB_USERNAME=$DB_USERNAME
+            export DB_PASSWORD=$DB_PASSWORD
+            
+            export GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+            export GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+            export GOOGLE_REDIRECT_URI_PROD=$GOOGLE_REDIRECT_URI_PROD
+            
+            export EXTENSION_URL=$EXTENSION_URL
+            export LOGIN_SUCCESS_URL=$LOGIN_SUCCESS_URL
+            export SQS_QUEUE_URL=$SQS_QUEUE_URL
+            
+            export REDIS_PORT=$REDIS_PORT
+            export REDIS_HOST=$REDIS_HOST
+            
+            
             nohup setsid java -jar AI_habit_track-0.0.5-SNAPSHOT.jar --spring.profiles.active=prod > app-AI_habit_track-0.0.5-SNAPSHOT.log 2>&1 &
