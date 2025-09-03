@@ -85,8 +85,6 @@ jobs:
           username: ${{ env.EC2_USERNAME }}
           key: ${{ env.EC2_SSH_PRIVATE_KEY }}
           script: |
-            # Find and kill the old running Java process
-            pkill -f 'java -jar' || true 
-            # Navigate to the app directory
+            fuser -k 8080/tcp || true
             cd /home/ubuntu/focus_tracker_main_service/target
-            nohup java -jar  AI_habit_track-0.0.5-SNAPSHOT.jar --spring.profiles.active=prod > app-AI_habit_track-0.0.5-SNAPSHOT.log 2>&1 &
+            nohup setsid java -jar AI_habit_track-0.0.5-SNAPSHOT.jar --spring.profiles.active=prod > app-AI_habit_track-0.0.5-SNAPSHOT.log 2>&1 &
