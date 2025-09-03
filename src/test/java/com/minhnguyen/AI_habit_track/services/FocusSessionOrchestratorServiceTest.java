@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,24 +60,22 @@ class FocusSessionOrchestratorServiceTest {
     @BeforeEach
     void setUp() {
 
-        // mock data 1
         requestDTO = new FocusSessionRequestDTO();
         requestDTO.setSessionName("Afternoon Focus Session 7/18 - Request Flow back ! ");
-        requestDTO.setStartTime(1752666000L);
-        requestDTO.setEndTime(1752687600L);
+        requestDTO.setStartTime(Instant.now());
+        requestDTO.setEndTime(Instant.now());
         requestDTO.setQualityGrade(4);
         requestDTO.setFocusGrade(4);
         requestDTO.setAchievementNote("1. Deploy AWS lambda for the first time + SQS Queue 2. Integrate Gemini API + ChatGPT API 3. Set up config SAM flow 4. Test around");
         requestDTO.setDistractionNote("Stranger Chat disruption. Youtube disruption while waiting response from AI. Random disruption on phone.");
 
         List<ActivityRequestDTO> activities = new ArrayList<>();
-        activities.add(new ActivityRequestDTO("www.youtube.com", 4200L));
-        activities.add(new ActivityRequestDTO("www.gemini.com", 7200L));
-        activities.add(new ActivityRequestDTO("www.github.com", 300L));
-        activities.add(new ActivityRequestDTO("www.aws.com", 2340L));
-        activities.add(new ActivityRequestDTO("www.instagram.com", 2100L));
+        activities.add(new ActivityRequestDTO("www.youtube.com",  Duration.ofMinutes(60)));
+        activities.add(new ActivityRequestDTO("www.gemini.com",  Duration.ofMinutes(60)));
+        activities.add(new ActivityRequestDTO("www.github.com",  Duration.ofMinutes(60)));
+        activities.add(new ActivityRequestDTO("www.aws.com",  Duration.ofMinutes(60)));
+        activities.add(new ActivityRequestDTO("www.instagram.com",  Duration.ofMinutes(60)));
         requestDTO.setActivities(activities);
-
 
         userOAuthDTO = new UserOAuthDTO("MinhTest", "minhtest@example.com");
 
@@ -164,10 +164,8 @@ class FocusSessionOrchestratorServiceTest {
     @DisplayName("Edge case 3: handle empty activities list")
     void testProcessAndSaveWorkSession_EmptyActivities() {
         // --- GIVEN ---
-        // Modify requestDTO to have an empty activities list
         requestDTO.setActivities(new ArrayList<>());
 
-        // Define mock behavior for happy path
         when(authService.getUserDetails()).thenReturn(userOAuthDTO);
         when(userService.findOrCreateUser(any(UserOAuthDTO.class))).thenReturn(mockUser);
         when(sessionService.saveSession(any(FocusSessionRequestDTO.class), any(User.class))).thenReturn(mockSavedSession);
@@ -188,7 +186,10 @@ class FocusSessionOrchestratorServiceTest {
 
         // Verify AIServiceQueueDTO contents
         ArgumentCaptor<AIServiceQueueDTO> queueDtoCaptor = ArgumentCaptor.forClass(AIServiceQueueDTO.class);
+
         verify(queueService).queueSessionForFeedback(queueDtoCaptor.capture());
+        AIServiceQueueDTO capturedDto = queueDtoCaptor.getValue();
+        System.out.println(capturedDto.getActivities());
         assertThat(queueDtoCaptor.getValue().getActivities()).isEmpty();
     }
 }

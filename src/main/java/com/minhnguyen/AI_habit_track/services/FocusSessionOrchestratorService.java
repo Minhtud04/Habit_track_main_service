@@ -15,8 +15,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 @Service
 public class FocusSessionOrchestratorService {
+
+
     private static final Logger logger = LoggerFactory.getLogger(FocusSessionController.class);
     private final FocusSessionService sessionService;
     private final ActivityService activityService;
@@ -47,7 +52,9 @@ public class FocusSessionOrchestratorService {
             activityService.saveAllActivities(focusSessionRequestDTO, savedSession);
         }
         // 4. send to queue
-        queueService.queueSessionForFeedback(createAiFeedbackDto(focusSessionRequestDTO, savedSession));
+        queueService.queueSessionForFeedback(new AIServiceQueueDTO(savedSession));
+        savedSession.setAiFeedbackStatus(FocusSession.AiFeedbackStatus.PENDING);
+        savedSession.setProcessExceededTime(Instant.now().plus(2, ChronoUnit.MINUTES));
         logger.info("Successfully saved and sent to Queue. Focus Session ID: {} - User email: {}", savedSession.getId(), savedSession.getUser().getEmail()); // Log the session ID for tracking
 
         return savedSession;
@@ -70,7 +77,6 @@ public class FocusSessionOrchestratorService {
         }
 
         return response;
-
     }
 
 
@@ -82,17 +88,6 @@ public class FocusSessionOrchestratorService {
         return userService.findOrCreateUser(userOAuthDTO);
     }
 
-
-    private AIServiceQueueDTO createAiFeedbackDto(FocusSessionRequestDTO requestDto, FocusSession savedSession) {
-        return new AIServiceQueueDTO(
-                savedSession.getId(),
-                requestDto.getStartTime(),
-                requestDto.getEndTime(),
-                requestDto.getActivities(),
-                requestDto.getAchievementNote(),
-                requestDto.getDistractionNote()
-        );
-    }
 
 
     private FullFocusSessionDTO createFullFocusSessionResponseDTO(FocusSession focusSession, AISessionFeedback aiFeedback) {

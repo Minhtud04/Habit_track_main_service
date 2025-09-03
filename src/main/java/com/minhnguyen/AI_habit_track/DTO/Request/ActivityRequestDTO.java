@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.time.Duration;
+
 @Data // Simple DTO, so @Data is acceptable here.
 @AllArgsConstructor
 public class ActivityRequestDTO {
@@ -12,5 +14,5 @@ public class ActivityRequestDTO {
     private String name;
 
     @JsonProperty("usage_time")
-    private long usageTime; // in milliseconds
+    private Duration usageTime;
 }

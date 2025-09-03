@@ -42,6 +42,11 @@ spring:
       ssl:
         enabled: false
 
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+
 # --- Custom App Properties ---
 LOGIN_SUCCESS_URL: "http://localhost:3000/test-login-success"
 SQS_QUEUE_URL: "mock-sqs-queue-for-testing"

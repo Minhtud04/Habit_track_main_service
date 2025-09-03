@@ -6,10 +6,6 @@ import com.minhnguyen.AI_habit_track.models.User;
 import com.minhnguyen.AI_habit_track.repositories.FocusSessionRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 @Service
 public class FocusSessionService {
     private final FocusSessionRepository focusSessionRepository;
@@ -33,13 +29,14 @@ public class FocusSessionService {
         FocusSession session = new FocusSession();
 
         session.setSessionName(dto.getSessionName() != null ? dto.getSessionName() : "Focus Session");
-        session.setStartDateTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(dto.getStartTime()), ZoneId.systemDefault()));
-        session.setEndDateTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(dto.getEndTime()), ZoneId.systemDefault()));
+        session.setStartTime(dto.getStartTime());
+        session.setEndTime(dto.getEndTime());
         session.setQualityScore(dto.getQualityGrade());
         session.setFocusScore(dto.getFocusGrade());
         session.setAchievementNote(dto.getAchievementNote());
         session.setDistractionNote(dto.getDistractionNote());
         session.setUser(user);
+        session.setAiFeedbackStatus(FocusSession.AiFeedbackStatus.PENDING);     //new created -> no feedback
 
         return session;
     }

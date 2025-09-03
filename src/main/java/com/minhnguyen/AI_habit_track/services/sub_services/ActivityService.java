@@ -16,6 +16,7 @@ public class ActivityService {
     public ActivityService(ActivityRepository activityRepository) {
         this.activityRepository = activityRepository;
     }
+
     public void saveAllActivities(FocusSessionRequestDTO focusSessionRequestDTO, FocusSession savedSession) {
         List<Activity> activities = mapDtoToActivities(focusSessionRequestDTO, savedSession);
         activityRepository.saveAll(activities);
@@ -26,7 +27,7 @@ public class ActivityService {
                 .map(activityDto -> {
                     Activity activity = new Activity();
                     activity.setActivityName(activityDto.getName());
-                    activity.setDuration(Duration.ofMillis(activityDto.getUsageTime()));
+                    activity.setDuration(activityDto.getUsageTime());
                     activity.setFocusSession(parentSession);
                     return activity;
                 })

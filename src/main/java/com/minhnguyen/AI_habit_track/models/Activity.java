@@ -25,13 +25,11 @@ public class Activity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "focus_session_id", nullable = false) // Corrected typo and made non-nullable
     @ToString.Exclude // Prevents potential infinite loops in toString()
     private FocusSession focusSession;
-
-    // The 'date' field was removed because it is redundant.
-    // It can be derived from the associated FocusSession via: activity.getFocusSession().getStartDateTime().toLocalDate()
 
     @NotBlank(message = "Activity name cannot be blank")
     @Column(nullable = false, length = 255)
@@ -39,11 +37,9 @@ public class Activity {
 
     @NotNull(message = "Duration cannot be null")
     @Column(nullable = false)
-    // Using java.time.Duration is type-safe and clear. JPA 2.2+ maps this to a numeric type.
     private Duration duration;
 
 
-    // --- Custom equals() and hashCode() for stable entity management ---
 
     @Override
     public boolean equals(Object o) {

@@ -2,12 +2,16 @@ package com.minhnguyen.AI_habit_track.DTO.Internal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.minhnguyen.AI_habit_track.DTO.Request.ActivityRequestDTO;
+import com.minhnguyen.AI_habit_track.models.Activity;
+import com.minhnguyen.AI_habit_track.models.FocusSession;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,31 +24,40 @@ import java.util.List;
 public class AIServiceQueueDTO {
     @NotNull(message = "sessionId is required")
     @JsonProperty("session_id")
-    private Long sessionId;             // User's sessionId for further storage !
+    private Long sessionId;
 
     @NotNull(message = "Start time is required")
     @JsonProperty("start_time")
-    private Long startTime;             // Unix timestamp in milliseconds
+    private Instant startTime;
 
     @NotNull(message = "End time is required")
     @JsonProperty("end_time")
-    private Long endTime; // Unix timestamp in milliseconds
-    /**
-     * A list of activities (domains and usage times) that occurred during the session.
-     */
+    private Instant endTime;
+
+
     @NotEmpty(message = "Activities list cannot be empty.")
     @JsonProperty("activities")
     private List<ActivityRequestDTO> activities;
 
-    /**
-     * The user's self-reported note on their achievements.
-     */
+
     @JsonProperty("achievement_note")
     private String achievementNote;
 
-    /**
-     * The user's self-reported note on what distracted them.
-     */
     @JsonProperty("distraction_note")
     private String distractionNote;
+
+
+    public AIServiceQueueDTO(FocusSession session) {
+        this.sessionId = session.getId();
+        this.startTime = session.getStartTime();
+        this.endTime = session.getEndTime();
+        this.achievementNote = session.getAchievementNote();
+        this.distractionNote = session.getDistractionNote();
+        this.activities = new ArrayList<>();
+        for (Activity activity : session.getActivities()) {
+            this.activities.add(new ActivityRequestDTO(
+                    activity.getActivityName(),
+                    activity.getDuration())); // Assuming a mapping constructor
+        }
+    }
 }

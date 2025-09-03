@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -17,11 +18,11 @@ public class FocusSessionRequestDTO {
 
     @NotNull(message = "Start time is required")
     @JsonProperty("start_time")
-    private Long startTime; // Unix timestamp in milliseconds
+    private Instant startTime; // Represents an exact moment in UTC
 
     @NotNull(message = "End time is required")
     @JsonProperty("end_time")
-    private Long endTime; // Unix timestamp in milliseconds
+    private Instant endTime; // Represents an exact moment in UTC
 
     @JsonProperty("activities")
     private List<ActivityRequestDTO> activities;

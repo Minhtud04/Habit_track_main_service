@@ -48,14 +48,13 @@ public class AI_FeedbackService {
 
         LOG.info("Check existing session succeeded. Saving processing...");
         // 3. Save the new entity to the database.
-        aiSessionFeedbackRepository.save(feedback);
+        AISessionFeedback savedFeedback = aiSessionFeedbackRepository.save(feedback);
 
-        FocusSession updatedSession = focusSessionRepository.findById(focusSessionId)
-                .orElseThrow(() -> new RuntimeException("FocusSession not found with id: " + focusSessionId));
-
-        LOG.info("Successfully saved AI feedback ID: {}  - FocusSession ID: {}", updatedSession.getAiSessionFeedback().getId(), updatedSession.getId());
-
-        return updatedSession;
+        // 4. Update focusSession status -> true
+        focusSession.setAiFeedbackStatus(FocusSession.AiFeedbackStatus.YES);
+        focusSession.setAiSessionFeedback(savedFeedback);
+        LOG.info("Successfully saved AI feedback ID: {}  - FocusSession ID: {}", focusSession.getAiSessionFeedback().getId(), focusSession.getId());
+        return focusSession;
     }
 
 
@@ -65,7 +64,7 @@ public class AI_FeedbackService {
         AISessionFeedback aiSessionFeedback = aiSessionFeedbackRepository.findByFocusSession(focusSession);
         if (aiSessionFeedback == null) {
             LOG.warn("No AI feedback found for FocusSession ID: {}", focusSession.getId());
-            return null; // or throw an exception if you prefer
+            return null;
         }
         LOG.info("Successfully retrieved AI feedback ID: {} for FocusSession ID: {}", aiSessionFeedback.getId(), focusSession.getId());
         return aiSessionFeedback;
