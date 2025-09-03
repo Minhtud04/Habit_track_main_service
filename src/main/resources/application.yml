@@ -1,42 +1,46 @@
 server:
   port: 8080
+  address: 0.0.0.0
   servlet:
-    context-path: /api
+    context-path: /api/v1
+    session:
+      cookie:
+        same-site: none
+        secure: true
 
 spring:
   application:
     name: my-app
-  jpa:
-    hibernate:
-      ddl-auto: update # Use 'validate' for production to prevent accidental schema changes
-    show-sql: true
-  session:
-    store-type: jdbc
-    jdbc:
-      initialize-schema: always # Creates the spring_session table if it doesn't exist
-  flyway:
-    enabled: false
   profiles:
     active: "prod"
 
----
-# ===================================================================
-# PRODUCTION PROFILE (prod)
-# - Activated when --spring.profiles.active=prod
-# - Uses PostgreSQL RDS
-# - Production Domain
-# ===================================================================
-spring:
-  config:
-    activate:
-      on-profile: prod
+  flyway:
+    enabled: false
   datasource:
     url: ${DB_HOST_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  session:
+    store-type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      ssl:
+        enabled: true
+
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+
   security:
     oauth2:
       client:
@@ -44,43 +48,45 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${GOOGLE_REDIRECT_URI_PROD}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
 
-my-app:
-  message: Hello from Production!
+
+app:
+  jwt:
+    issuer: "my-app"
+    hmac-secret: ${APP_JWT_HS256_SECRET}
+    access-token-ttl-seconds: 300
+  ws:
+    token-redis-prefix: "wsjti:"
+
+  oauth2:
+    login-success-url: ${LOGIN_SUCCESS_URL}
+  sqs:
+    queue-url: ${SQS_QUEUE_URL}
+
+  domain-url: ${DOMAIN_URL}
+  cors:
+    extension-url: ${EXTENSION_URL}
 
 ---
 # ===================================================================
-# TEST PROFILE (test)
-# - Activated automatically for @SpringBootTest or with --spring.profiles.active=test
-# - Uses H2 in-memory database
-# - Localhost Domain
+# PRODUCTION PROFILE (prod)
+# 1. Datasource:  PosgreSQL - AWS
+# 2. Main_URL:    www.myfocustracker.com
+# 3. SQS_URL:
 # ===================================================================
 spring:
   config:
     activate:
-      on-profile: test
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    username: sa
-    password: password
-    driver-class-name: org.h2.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create-drop # Re-creates the schema on every test run
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${GOOGLE_REDIRECT_URI_DEV}
+      on-profile: prod
 
-my-app:
-  message: Hello from Test!
+---
+# ===================================================================
+# Dev local PROFILE (dev).
+# 1. DB:        Uses H2 in-memory database
+# 2. MAIN_URL:  Localhost Domain
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: dev

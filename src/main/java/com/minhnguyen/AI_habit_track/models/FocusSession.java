@@ -6,7 +6,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -22,6 +24,11 @@ import java.util.Objects;
 @Entity
 @Table(name = "focus_sessions")
 public class FocusSession {
+    public enum AiFeedbackStatus {
+        NO,
+        YES,
+        PENDING
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,11 +44,14 @@ public class FocusSession {
 
     @NotNull(message = "Start date and time cannot be null")
     @Column(nullable = false)
-    private LocalDateTime startDateTime;
+    private Instant startTime;
 
-    @NotNull(message = "End date and time cannot be null")
-    @Column(nullable = false)
-    private LocalDateTime endDateTime;
+    @NotNull(message = "End date and time cannot be null")          //application level
+    @Column(nullable = false)                                       //Database JPA level
+    private Instant endTime;
+
+    @OneToMany(mappedBy = "focusSession")
+    private List<Activity> activities =  new ArrayList<>();;
 
     @Min(value = 1, message = "Quality score min = 1")
     @Max(value = 10, message = "Quality score max = 10")
@@ -53,27 +63,27 @@ public class FocusSession {
     @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 5")
     private Integer focusScore;
 
-    @Column(length = 1000) // It's good practice to define a length for text fields
+    @Column(length = 1200)  //~200 words
     private String achievementNote;
 
-    @Column(length = 1000)
+    @Column(length = 1200)  //~200 words
     private String distractionNote;
 
     // The 'fetch' strategy is LAZY by default for @OneToOne on the non-owning side.
-    // 'mappedBy' indicates that the AISessionFeedback entity is responsible for the foreign key relationship.
     @OneToOne(mappedBy = "focusSession", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude // Exclude from toString to prevent potential infinite loops
+    @ToString.Exclude
     private AISessionFeedback aiSessionFeedback;
 
-    // Helper method to associate feedback with this session
-    public void setAiSessionFeedback(AISessionFeedback feedback) {
-        if (feedback != null) {
-            feedback.setFocusSession(this);
-        }
-        this.aiSessionFeedback = feedback;
-    }
+    //Status
+    @NotNull
+    @Enumerated(EnumType.STRING) // This is important!
+    private AiFeedbackStatus aiFeedbackStatus;
 
-    // --- Custom equals() and hashCode() for stable entity management ---
+    //Time-limit for aiFeedback Retry
+    @NotNull(message = "Time limit cannot be null")
+    @Column(nullable = false)
+    private Instant processExceededTime;
+
 
     @Override
     public boolean equals(Object o) {

@@ -1,32 +1,72 @@
 package com.minhnguyen.AI_habit_track.services.sub_services;
 
-import com.minhnguyen.AI_habit_track.DTO.AI_FeedbackDTO;
+import com.minhnguyen.AI_habit_track.DTO.Internal.AI_FeedbackDTO;
+import com.minhnguyen.AI_habit_track.models.AISessionFeedback;
+import com.minhnguyen.AI_habit_track.models.FocusSession;
+import com.minhnguyen.AI_habit_track.repositories.AISessionFeedbackRepository;
+import com.minhnguyen.AI_habit_track.repositories.FocusSessionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AI_FeedbackService {
-    private static final Logger logger = LoggerFactory.getLogger(AI_FeedbackService.class);
 
-    // In a real app, you would inject RabbitTemplate, KafkaTemplate, etc.
+    private static final Logger LOG = LoggerFactory.getLogger(AI_FeedbackService.class);
+    private final AISessionFeedbackRepository aiSessionFeedbackRepository;
+    private final FocusSessionRepository focusSessionRepository;
 
-    /**
-     * Sends a structured DTO to a message queue for asynchronous AI processing.
-     *
-     * @param sessionId The ID of the persisted FocusSession this feedback relates to.
-     * @param feedbackDto The DTO containing all data needed for the AI.
-     */
-    public void queueSessionForFeedback(Long sessionId, AI_FeedbackDTO feedbackDto) {
-        // The payload for the message queue now neatly contains the session ID and the feedback data.
-        var payload = new AIQueuePayload(sessionId, feedbackDto);
-
-        // In a real app, you would serialize and send this 'payload' object.
-        // e.g., rabbitTemplate.convertAndSend("ai-feedback-exchange", "ai.feedback.request", payload);
-
-        logger.info("Queuing session for AI feedback. Payload: {}", payload);
+    public AI_FeedbackService(AISessionFeedbackRepository aiSessionFeedbackRepository, FocusSessionRepository focusSessionRepository) {
+        this.aiSessionFeedbackRepository = aiSessionFeedbackRepository;
+        this.focusSessionRepository = focusSessionRepository;
     }
 
-    // A private record to represent the message payload. It's clean and immutable.
-    private record AIQueuePayload(Long sessionId, AI_FeedbackDTO feedbackData) {}
+
+    /**
+     * Creates and saves a new AISessionFeedback entity based on the payload from the AI service.
+     *
+     * @param focusSessionId The ID of the parent FocusSession.
+     * @param payload        The DTO containing the AI-generated scores and notes.
+     */
+    @Transactional
+    public FocusSession saveFeedback(Long focusSessionId, AI_FeedbackDTO payload) {
+        LOG.info("Attempting to save AI feedback for FocusSession ID: {}", focusSessionId);
+
+        // 1. Find the parent FocusSession entity.
+        FocusSession focusSession = focusSessionRepository.findById(focusSessionId)
+                .orElseThrow(() -> new RuntimeException("FocusSession not found with id: " + focusSessionId));
+
+
+        // 2. Create and populate the new AISessionFeedback entity.
+        AISessionFeedback feedback = new AISessionFeedback();
+        feedback.setFocusSession(focusSession); // Link it to the parent session.
+        feedback.setAiFocusScore(payload.getAiFocusScore());
+        feedback.setAiQualityScore(payload.getAiQualityScore());
+        feedback.setAiNote(payload.getAiNotes());
+
+
+        LOG.info("Check existing session succeeded. Saving processing...");
+        // 3. Save the new entity to the database.
+        AISessionFeedback savedFeedback = aiSessionFeedbackRepository.save(feedback);
+
+        // 4. Update focusSession status -> true
+        focusSession.setAiFeedbackStatus(FocusSession.AiFeedbackStatus.YES);
+        focusSession.setAiSessionFeedback(savedFeedback);
+        LOG.info("Successfully saved AI feedback ID: {}  - FocusSession ID: {}", focusSession.getAiSessionFeedback().getId(), focusSession.getId());
+        return focusSession;
+    }
+
+
+    public AISessionFeedback getAiFeedbackByFocusSession(FocusSession focusSession) {
+        LOG.info("Retrieving AI feedback for FocusSession ID: {}", focusSession.getId());
+
+        AISessionFeedback aiSessionFeedback = aiSessionFeedbackRepository.findByFocusSession(focusSession);
+        if (aiSessionFeedback == null) {
+            LOG.warn("No AI feedback found for FocusSession ID: {}", focusSession.getId());
+            return null;
+        }
+        LOG.info("Successfully retrieved AI feedback ID: {} for FocusSession ID: {}", aiSessionFeedback.getId(), focusSession.getId());
+        return aiSessionFeedback;
+    }
 }

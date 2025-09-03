@@ -32,5 +32,4 @@ public class User {
     @Size(max = 100)
     @Column(nullable = false, unique = true, length = 100) // Database-level: NOT NULL, UNIQUE, VARCHAR(100)
     private String email;
-
 }

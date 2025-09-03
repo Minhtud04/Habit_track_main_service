@@ -1,56 +1,65 @@
 package com.minhnguyen.AI_habit_track.config;
 
+import com.minhnguyen.AI_habit_track.controllers.FocusSessionController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.annotation.Order;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
+
+
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    final String OAUTH2_LOGIN_SUCCESS_URL = "http://localhost:3000/home";
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
-        // Disable CSRF protection for all endpoints
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // --- ADD THIS SECTION FOR H2 CONSOLE ---
-                .csrf(csrf -> csrf
-                        // Disable CSRF protection only for the H2 console path
-                        .ignoringRequestMatchers(toH2Console())
-                )
+    @Value("${app.cors.extension-url}")
+    private String EXTENSION_URL;
+    final String INTERNAL_API_BASE_URL = "/service-internal/**";
+
+    Logger log = LoggerFactory.getLogger(FocusSessionController.class);
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain internalApiFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(INTERNAL_API_BASE_URL)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain mainFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers
-                        // The H2 console runs in a frame, so we need to allow it
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
-                // --- END OF H2 CONSOLE SECTION ---
 
                 .authorizeHttpRequests(auth -> auth
-                        // Allow public access to the essentials
                         .requestMatchers("/health", "/oauth2/**").permitAll()
-                        // Secure everything else
+                        .requestMatchers("/ws").permitAll()
                         .anyRequest().authenticated()
                 )
 
-                //disable csrf
-                .csrf(AbstractHttpConfigurer::disable
-                )
-
-                // Configure OAuth2 Login with just the essential success handler
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(successHandler)
                 );
@@ -58,11 +67,10 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // CORS configuration remains essential for your SPA architecture
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of(EXTENSION_URL));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -73,23 +81,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationSuccessHandler successHandler() {
-        // A @Bean method must return an object. Here, we return the handler itself.
-        return (request, response, authentication) -> {
+    public AuthenticationSuccessHandler successHandler(
+            @Value("${app.oauth2.login-success-url}") String successUrl) {
 
-            // The logic to get the user goes INSIDE the lambda.
-            // The 'authentication' object is passed into the handler when it's called.
-            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-            OAuth2User oauthUser = oauthToken.getPrincipal();
-
-            // You can now use the user's details for logging or other tasks.
-            String name = oauthUser.getAttribute("name");
-            String email = oauthUser.getAttribute("email");
-
-            System.out.println("Login successful for user: " + name + " with email: " + email);
-
-            // Finally, the main job of the handler: redirect the user's browser.
-            response.sendRedirect(OAUTH2_LOGIN_SUCCESS_URL);
+        return (request, response, auth) -> {
+            var oauth = (OAuth2AuthenticationToken) auth;
+            var user = oauth.getPrincipal();
+            log.info("User logged in successfully : {}", user.getName());
+            response.sendRedirect(successUrl);
         };
     }
 }
+

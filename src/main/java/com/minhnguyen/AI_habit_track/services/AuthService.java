@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-
     /**
      * Retrieves user details from the current security context.
      * This method does not use @AuthenticationPrincipal, as that annotation is

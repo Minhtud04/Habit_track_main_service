@@ -1,0 +1,55 @@
+# ===================================================================
+# TEST-ONLY CONFIGURATION
+# - This file is automatically loaded when the 'test' profile is active.
+# - It provides mock values for all required properties.
+# ===================================================================
+
+# --- Spring Properties ---
+spring:
+  # Use an in-memory database for tests to keep them fast and isolated
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+  
+  # Re-create the database schema on every test run for a clean state
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+  
+  # Enable the H2 database console for debugging, if needed
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Mock security values for tests
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "test-google-client-id"
+            client-secret: "test-google-client-secret"
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      ssl:
+        enabled: false
+
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+
+# --- Custom App Properties ---
+LOGIN_SUCCESS_URL: "http://localhost:3000/test-login-success"
+SQS_QUEUE_URL: "mock-sqs-queue-for-testing"
+DOMAIN_URL: "http://localhost:8080"
+EXTENSION_URL: "chrome-extension://mock-extension-id-for-testing"
+APP_JWT_HS256_SECRET: "xDrzTkv3MgYfZfrfK6jMowUKM4c7cysl5nGfGgW5r6YdK7U5O3p8O+JDm5tXNxXc3m0XnrEZKj5M3phf9e7XxQ=="
