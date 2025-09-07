@@ -34,6 +34,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs: build-and-test
     environment:
       name: production
 
@@ -94,16 +95,17 @@ jobs:
             fuser -k 8080/tcp || true
             cd /home/ubuntu/focus_tracker_main_service/target
             
-            DB_HOST_URL=${{ env.DB_HOST_URL }} \
-            DB_USERNAME=${{ env.DB_USERNAME }} \
-            DB_PASSWORD=${{ env.DB_PASSWORD }} \
-            REDIS_PORT=${{ env.REDIS_PORT }} \
-            REDIS_HOST=${{ env.REDIS_HOST }} \
-            GOOGLE_CLIENT_ID=${{ env.GOOGLE_CLIENT_ID }} \
-            GOOGLE_CLIENT_SECRET=${{ env.GOOGLE_CLIENT_SECRET }} \
-            GOOGLE_REDIRECT_URI=${{ env.GOOGLE_REDIRECT_URI_PROD }} \
-            SQS_QUEUE_URL=${{ env.SQS_QUEUE_URL }} \
-            EXTENSION_URL=${{ env.EXTENSION_URL }} \
-            LOGIN_SUCCESS_URL=${{ env.LOGIN_SUCCESS_URL }} \
+            export SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }}
+            export DB_HOST_URL=${{ env.DB_HOST_URL }}
+            export DB_USERNAME=${{ env.DB_USERNAME }}
+            export DB_PASSWORD=${{ env.DB_PASSWORD }}
+            export REDIS_PORT=${{ env.REDIS_PORT }}
+            export REDIS_HOST=${{ env.REDIS_HOST }}
+            export GOOGLE_CLIENT_ID=${{ env.GOOGLE_CLIENT_ID }}
+            export GOOGLE_CLIENT_SECRET=${{ env.GOOGLE_CLIENT_SECRET }}
+            export GOOGLE_REDIRECT_URI=${{ env.GOOGLE_REDIRECT_URI_PROD }}
+            export SQS_QUEUE_URL=${{ env.SQS_QUEUE_URL }}
+            export EXTENSION_URL=${{ env.EXTENSION_URL }}
+            export LOGIN_SUCCESS_URL=${{ env.LOGIN_SUCCESS_URL }}
             
             nohup setsid java -jar AI_habit_track-0.0.5-SNAPSHOT.jar --spring.profiles.active=prod > app-AI_habit_track-0.0.5-SNAPSHOT.log 2>&1 &
