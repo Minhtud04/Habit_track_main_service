@@ -82,7 +82,7 @@ spring:
   data:
     redis:
       ssl:
-        enabled: true
+        enabled: false
 ---
 # ===================================================================
 # Dev local PROFILE (dev).
