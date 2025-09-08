@@ -33,8 +33,7 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-      ssl:
-        enabled: true
+
 
   cloud:
     aws:
@@ -80,6 +79,10 @@ spring:
     activate:
       on-profile: prod
 
+  data:
+    redis:
+      ssl:
+        enabled: true
 ---
 # ===================================================================
 # Dev local PROFILE (dev).
@@ -90,3 +93,7 @@ spring:
   config:
     activate:
       on-profile: dev
+  data:
+    redis:
+      ssl:
+        enabled: false
