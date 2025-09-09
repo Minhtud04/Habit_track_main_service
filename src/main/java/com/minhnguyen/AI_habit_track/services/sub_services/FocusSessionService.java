@@ -24,7 +24,6 @@ public class FocusSessionService {
                 .orElseThrow(() -> new IllegalArgumentException("Focus session not found with ID: " + sessionId));
     }
 
-
     private FocusSession mapDtoToFocusSession(FocusSessionRequestDTO dto, User user) {
         FocusSession session = new FocusSession();
 
@@ -36,8 +35,8 @@ public class FocusSessionService {
         session.setAchievementNote(dto.getAchievementNote());
         session.setDistractionNote(dto.getDistractionNote());
         session.setUser(user);
-        session.setAiFeedbackStatus(FocusSession.AiFeedbackStatus.PENDING);     //new created -> no feedback
 
+        session.setAiFeedbackStatus(FocusSession.AiFeedbackStatus.NO);     //new created -> no feedback
         return session;
     }
 }

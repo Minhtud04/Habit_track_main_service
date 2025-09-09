@@ -51,7 +51,7 @@ public class FocusSession {
     private Instant endTime;
 
     @OneToMany(mappedBy = "focusSession")
-    private List<Activity> activities =  new ArrayList<>();;
+    private List<Activity> activities =  new ArrayList<>();
 
     @Min(value = 1, message = "Quality score min = 1")
     @Max(value = 10, message = "Quality score max = 10")
@@ -80,10 +80,7 @@ public class FocusSession {
     private AiFeedbackStatus aiFeedbackStatus;
 
     //Time-limit for aiFeedback Retry
-    @NotNull(message = "Time limit cannot be null")
-    @Column(nullable = false)
     private Instant processExceededTime;
-
 
     @Override
     public boolean equals(Object o) {
